@@ -1,0 +1,59 @@
+// Prisma Schema - 服装设计管理系统
+// 数据库：SQLite
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../database/garment.db"
+}
+
+// 设计稿表
+model Design {
+  id          Int             @id @default(autoincrement())
+  title       String                    // 设计标题
+  description String?                   // 设计说明
+  imageUrl    String                    // 图片路径
+  category    String                    // 分类（春夏/秋冬/运动/休闲等）
+  season      String?                   // 季节
+  designer    String                    // 设计师
+  status      String     @default("draft") // 状态：draft/published/archived
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  versions    DesignVersion[]
+  patterns    Pattern[]
+
+  @@map("designs")
+}
+
+// 样板表
+model Pattern {
+  id          Int      @id @default(autoincrement())
+  name        String                // 样板名称
+  size        String                // 尺码（S/M/L/XL/XXL）
+  category    String                // 分类（上装/下装/套装/配饰）
+  fileUrl     String                // 样板文件路径
+  description String?               // 样板说明
+  designId    Int?                  // 关联设计稿ID
+  design      Design?  @relation(fields: [designId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("patterns")
+}
+
+// 设计版本历史表
+model DesignVersion {
+  id          Int      @id @default(autoincrement())
+  designId    Int                   // 关联设计稿ID
+  design      Design   @relation(fields: [designId], references: [id], onDelete: Cascade)
+  version     Int                   // 版本号
+  title       String                // 版本标题
+  description String?               // 变更说明
+  imageUrl    String?               // 版本图片
+  createdAt   DateTime @default(now())
+
+  @@map("design_versions")
+}
