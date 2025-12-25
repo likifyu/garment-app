@@ -1,92 +1,132 @@
 <template>
   <div class="dashboard">
-    <el-row :gutter="20">
-      <!-- 统计卡片 -->
-      <el-col :span="8">
-        <el-card class="stat-card">
+    <a-row :gutter="24">
+      <a-col :span="8">
+        <a-card class="stat-card designs-card" :bordered="false">
           <div class="stat-content">
-            <div class="stat-icon design-icon">
-              <el-icon :size="40"><Picture /></el-icon>
+            <div class="stat-icon">
+              <icon-image :size="40" />
             </div>
             <div class="stat-info">
               <div class="stat-number">{{ stats.designCount }}</div>
               <div class="stat-label">设计稿总数</div>
             </div>
           </div>
-        </el-card>
-      </el-col>
-
-      <el-col :span="8">
-        <el-card class="stat-card">
+        </a-card>
+      </a-col>
+      <a-col :span="8">
+        <a-card class="stat-card projects-card" :bordered="false">
           <div class="stat-content">
-            <div class="stat-icon pattern-icon">
-              <el-icon :size="40"><Document /></el-icon>
+            <div class="stat-icon">
+              <icon-clock-circle :size="40" />
             </div>
             <div class="stat-info">
               <div class="stat-number">{{ stats.patternCount }}</div>
-              <div class="stat-label">样板总数</div>
+              <div class="stat-label">项目进行中</div>
             </div>
           </div>
-        </el-card>
-      </el-col>
-
-      <el-col :span="8">
-        <el-card class="stat-card">
+        </a-card>
+      </a-col>
+      <a-col :span="8">
+        <a-card class="stat-card collaborators-card" :bordered="false">
           <div class="stat-content">
-            <div class="stat-icon version-icon">
-              <el-icon :size="40"><Clock /></el-icon>
+            <div class="stat-icon">
+              <icon-user-group :size="40" />
             </div>
             <div class="stat-info">
               <div class="stat-number">{{ stats.versionCount }}</div>
-              <div class="stat-label">历史版本</div>
+              <div class="stat-label">协作者</div>
             </div>
           </div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <!-- 快捷操作 -->
-    <el-row :gutter="20" style="margin-top: 20px">
-      <el-col :span="24">
-        <el-card header="快捷操作">
+        </a-card>
+      </a-col>
+    </a-row>
+    <a-row :gutter="24" style="margin-top: 32px">
+      <a-col :span="24">
+        <a-card class="actions-card" :bordered="false" title="快捷操作">
           <div class="quick-actions">
-            <el-button type="primary" @click="$router.push('/designs')">
-              <el-icon><Plus /></el-icon>
+            <a-button type="primary" size="large" @click="$router.push('/designs')">
+              <template #icon>
+                <icon-plus />
+              </template>
               新建设计稿
-            </el-button>
-            <el-button @click="$router.push('/patterns')">
-              <el-icon><Plus /></el-icon>
-              新建样板
-            </el-button>
+            </a-button>
+            <a-button size="large" @click="$router.push('/patterns')">
+              <template #icon>
+                <icon-upload />
+              </template>
+              上传文件
+            </a-button>
+            <a-button size="large">
+              <template #icon>
+                <icon-user-add />
+              </template>
+              邀请协作
+            </a-button>
           </div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <!-- 最近上传 -->
-    <el-row style="margin-top: 20px">
-      <el-col :span="24">
-        <el-card header="最近上传的设计稿">
-          <el-table :data="recentDesigns" style="width: 100%">
-            <el-table-column prop="title" label="设计标题" />
-            <el-table-column prop="category" label="分类" width="120" />
-            <el-table-column prop="designer" label="设计师" width="120" />
-            <el-table-column label="创建时间" width="180">
-              <template #default="{ row }">
-                {{ formatDate(row.createdAt) }}
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="150">
-              <template #default="{ row }">
-                <el-button link type="primary" @click="viewDesign(row.id)">
-                  查看详情
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-card>
-      </el-col>
-    </el-row>
+        </a-card>
+      </a-col>
+    </a-row>
+    <a-row :gutter="24" style="margin-top: 32px">
+      <a-col :span="24">
+        <a-card class="progress-card" :bordered="false" title="项目进度">
+          <div class="progress-list">
+            <div v-for="project in projectProgress" :key="project.id" class="progress-item">
+              <div class="progress-header">
+                <span class="progress-name">{{ project.name }}</span>
+                <span class="progress-percent">{{ project.percent }}%</span>
+              </div>
+              <a-progress
+                :percent="project.percent"
+                :color="getProgressColor(project.percent)"
+                :stroke-width="12"
+                show-text="false"
+              />
+            </div>
+          </div>
+        </a-card>
+      </a-col>
+    </a-row>
+    <a-row style="margin-top: 32px">
+      <a-col :span="24">
+        <a-card class="recent-card" :bordered="false" title="最近上传的设计稿">
+          <a-table
+            :data="recentDesigns"
+            :pagination="false"
+            :bordered="false"
+            class="designs-table"
+          >
+            <template #columns>
+              <a-table-column title="设计标题" data-index="title" />
+              <a-table-column title="分类" data-index="category" :width="140" />
+              <a-table-column title="设计师" data-index="designer" :width="140" />
+              <a-table-column title="创建时间" :width="180">
+                <template #cell="{ record }">
+                  {{ formatDate(record.createdAt) }}
+                </template>
+              </a-table-column>
+              <a-table-column title="进度" :width="180">
+                <template #cell="{ record }">
+                  <a-progress
+                    :percent="record.progress || 0"
+                    :stroke-width="6"
+                    :color="getProgressColor(record.progress || 0)"
+                    show-text="false"
+                  />
+                </template>
+              </a-table-column>
+              <a-table-column title="操作" :width="120" fixed="right">
+                <template #cell="{ record }">
+                  <a-button type="text" @click="viewDesign(record.id)">
+                    查看详情
+                  </a-button>
+                </template>
+              </a-table-column>
+            </template>
+          </a-table>
+        </a-card>
+      </a-col>
+    </a-row>
   </div>
 </template>
 
@@ -94,6 +134,14 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getDesigns } from '@/api/design'
+import {
+  IconImage,
+  IconClockCircle,
+  IconUserGroup,
+  IconPlus,
+  IconUpload,
+  IconUserAdd
+} from '@arco-design/web-vue/es/icon'
 
 const router = useRouter()
 
@@ -104,6 +152,13 @@ const stats = ref({
 })
 
 const recentDesigns = ref([])
+
+const projectProgress = ref([
+  { id: 1, name: '春季连衣裙系列', percent: 75 },
+  { id: 2, name: '男装休闲系列', percent: 45 },
+  { id: 3, name: '配饰设计项目', percent: 90 },
+  { id: 4, name: '冬季大衣系列', percent: 30 }
+])
 
 onMounted(async () => {
   try {
@@ -120,6 +175,12 @@ function formatDate(dateString) {
   return new Date(dateString).toLocaleString('zh-CN')
 }
 
+function getProgressColor(percent) {
+  if (percent >= 80) return '#D4AF37'
+  if (percent >= 50) return '#3B82F6'
+  return '#C2410C'
+}
+
 function viewDesign(id) {
   router.push(`/designs/${id}`)
 }
@@ -128,63 +189,211 @@ function viewDesign(id) {
 <style scoped>
 .dashboard {
   padding: 0;
+  min-height: 100vh;
+  background: #0A0E27;
 }
-
 .stat-card {
+  background: linear-gradient(145deg, #12193A 0%, #0A0E27 100%);
+  border-radius: 16px;
+  overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(59, 130, 246, 0.1);
 }
-
 .stat-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.3);
 }
-
 .stat-content {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
+  padding: 8px;
 }
-
 .stat-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 10px;
+  width: 88px;
+  height: 88px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
+  position: relative;
+  overflow: hidden;
 }
-
-.design-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.stat-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  opacity: 0.8;
+  filter: blur(20px);
 }
-
-.pattern-icon {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+.designs-card .stat-icon {
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
 }
-
-.version-icon {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+.projects-card .stat-icon {
+  background: linear-gradient(135deg, #D4AF37 0%, #B8962E 100%);
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.4);
 }
-
+.collaborators-card .stat-icon {
+  background: linear-gradient(135deg, #C2410C 0%, #9F3410 100%);
+  box-shadow: 0 8px 24px rgba(194, 65, 12, 0.4);
+}
+.stat-icon :deep(svg) {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
 .stat-info {
   flex: 1;
 }
-
 .stat-number {
-  font-size: 36px;
-  font-weight: bold;
-  color: #333;
+  font-size: 42px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #FFFFFF 0%, #9CA3AF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -1px;
 }
-
 .stat-label {
-  font-size: 14px;
-  color: #999;
-  margin-top: 5px;
+  font-size: 15px;
+  color: #9CA3AF;
+  margin-top: 8px;
+  font-weight: 500;
 }
-
+.actions-card,
+.progress-card,
+.recent-card {
+  background: linear-gradient(145deg, #12193A 0%, #0A0E27 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+}
+.actions-card :deep(.arco-card-header),
+.progress-card :deep(.arco-card-header),
+.recent-card :deep(.arco-card-header) {
+  border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+  padding: 24px;
+}
+.actions-card :deep(.arco-card-header-title),
+.progress-card :deep(.arco-card-header-title),
+.recent-card :deep(.arco-card-header-title) {
+  font-size: 18px;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+.actions-card :deep(.arco-card-body),
+.progress-card :deep(.arco-card-body),
+.recent-card :deep(.arco-card-body) {
+  padding: 24px;
+}
 .quick-actions {
   display: flex;
-  gap: 10px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.quick-actions .arco-btn {
+  height: 48px;
+  padding: 0 32px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+.quick-actions .arco-btn-primary {
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+  border: none;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+}
+.quick-actions .arco-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+}
+.quick-actions .arco-btn-secondary {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #3B82F6;
+}
+.quick-actions .arco-btn-secondary:hover {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.5);
+  transform: translateY(-2px);
+}
+.progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.progress-item {
+  padding: 16px;
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  transition: all 0.3s ease;
+}
+.progress-item:hover {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.progress-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #FFFFFF;
+}
+.progress-percent {
+  font-size: 14px;
+  font-weight: 600;
+  color: #3B82F6;
+}
+.designs-table {
+  background: transparent;
+}
+.designs-table :deep(.arco-table) {
+  background: transparent;
+}
+.designs-table :deep(.arco-table-thead-th) {
+  background: rgba(59, 130, 246, 0.08);
+  color: #9CA3AF;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.15);
+  padding: 16px;
+}
+.designs-table :deep(.arco-table-td) {
+  background: transparent;
+  color: #E5E7EB;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.08);
+  padding: 16px;
+}
+.designs-table :deep(.arco-table-tr:hover .arco-table-td) {
+  background: rgba(59, 130, 246, 0.05);
+}
+.designs-table :deep(.arco-btn-text) {
+  color: #3B82F6;
+}
+.designs-table :deep(.arco-btn-text:hover) {
+  background: rgba(59, 130, 246, 0.1);
+}
+@media (max-width: 768px) {
+  .stat-card {
+    margin-bottom: 16px;
+  }
+  .stat-number {
+    font-size: 32px;
+  }
+  .quick-actions {
+    flex-direction: column;
+  }
+  .quick-actions .arco-btn {
+    width: 100%;
+  }
 }
 </style>
